@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="nl-BE">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Leuven Laadpaal — Thuislader & wallbox in Leuven en rand | twee ingenieurs</title>
+<meta name="description" content="Twee ingenieurs elektrotechniek installeren je laadpaal, thuislader of wallbox in Leuven en omstreken. AREI-conform, netjes afgewerkt, met keuring. Vraag een vrijblijvende offerte." />
+<meta name="theme-color" content="#15171B" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   HOOGSPANNING — Leuven Laadpaal
+   Ink-black poster site, signal-yellow current, one stroomlijn.
+   ============================================================ */
+
+:root{
+  --ink:#15171B;
+  --panel:#1E2127;
+  --voltgeel:#FFC400;
+  --pulse:#FFF6D6;
+  --papier:#F2EFE6;
+  --diep:#101114;
+  --body:#C3C6CD;
+
+  /* Shared left offset for the rail so the stroomlijn never breaks */
+  --rail-x:clamp(20px,7vw,96px);
+  --rail-w:64px;
+  --maxw:1200px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--body);
+  font-family:"Archivo",system-ui,sans-serif;
+  font-size:17px;
+  line-height:1.65;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* ---- type helpers ---- */
+.display{
+  font-family:"Anton",Impact,sans-serif;
+  font-weight:400;
+  text-transform:uppercase;
+  line-height:0.92;
+  letter-spacing:-0.01em;
+  margin:0;
+  color:#fff;
+}
+.mono{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.kicker{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--voltgeel);
+}
+.yellow{color:var(--voltgeel)}
+
+a{color:inherit}
+
+::selection{background:var(--voltgeel);color:var(--diep)}
+
+/* ---- focus ---- */
+:focus-visible{
+  outline:2px solid var(--voltgeel);
+  outline-offset:3px;
+  border-radius:1px;
+}
+
+/* ---- skip link ---- */
+.skip{
+  position:absolute;left:8px;top:-60px;z-index:200;
+  background:var(--voltgeel);color:var(--diep);
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.1em;
+  padding:10px 16px;border-radius:2px;text-decoration:none;
+  transition:top .15s ease;
+}
+.skip:focus{top:8px}
+
+/* ============================================================
+   LAYOUT SCAFFOLD
+   Every <section> is position:relative and carries a 64px rail
+   pinned at --rail-x; content sits in .wrap offset to the right.
+   ============================================================ */
+
+.section{
+  position:relative;
+  padding-block:clamp(72px,11vw,140px);
+}
+.wrap{
+  position:relative;
+  z-index:2;
+  max-width:var(--maxw);
+  margin-inline:auto;
+  padding-inline:24px;
+  /* push content off-center to the right, clearing the rail */
+  padding-left:calc(var(--rail-x) + var(--rail-w) + clamp(8px,3vw,40px));
+}
+@media (max-width:880px){
+  .wrap{padding-left:calc(var(--rail-x) + 44px)}
+}
+@media (max-width:560px){
+  .wrap{padding-left:calc(var(--rail-x) + 28px);padding-right:18px}
+}
+
+/* ============================================================
+   DE STROOMLIJN — the rail + trace + travelling pulse
+   ============================================================ */
+
+.rail{
+  position:absolute;
+  top:0;bottom:0;
+  left:var(--rail-x);
+  width:var(--rail-w);
+  z-index:1;
+  pointer-events:none;
+}
+@media (max-width:720px){
+  .rail{width:32px}
+}
+
+/* Layer 1 — the static trace, centred in the rail */
+.rail .trace{
+  position:absolute;
+  left:50%;top:0;bottom:0;
+  width:2px;
+  margin-left:-1px;
+  background:var(--voltgeel);
+  opacity:.30;
+}
+/* dark trace variant for paper / yellow sections */
+.section--paper .rail .trace,
+.section--cta .rail .trace{
+  background:var(--diep);
+  opacity:.30;
+}
+
+/* Layer 2 — the travelling pulse (one electron) */
+.rail .pulse{
+  position:absolute;
+  left:50%;top:-140px;
+  width:2px;height:140px;
+  margin-left:-1px;
+  background:linear-gradient(180deg,transparent,var(--voltgeel) 35%,var(--pulse) 50%,var(--voltgeel) 65%,transparent);
+  filter:drop-shadow(0 0 6px rgba(255,196,0,.8));
+}
+.section--paper .rail .pulse,
+.section--cta .rail .pulse{
+  background:linear-gradient(180deg,transparent,#5a4a00 35%,var(--diep) 50%,#5a4a00 65%,transparent);
+  filter:drop-shadow(0 0 5px rgba(16,17,20,.55));
+}
+
+@media (prefers-reduced-motion:no-preference){
+  .rail .pulse{animation:flow 5s linear infinite}
+  @keyframes flow{
+    0%{top:-140px}
+    100%{top:100%}
+  }
+  /* stagger each section so it reads as one continuous travel */
+  .section:nth-of-type(2) .rail .pulse{animation-delay:-0.6s}
+  .section:nth-of-type(3) .rail .pulse{animation-delay:-1.4s}
+  .section:nth-of-type(4) .rail .pulse{animation-delay:-2.2s}
+  .section:nth-of-type(5) .rail .pulse{animation-delay:-3.0s}
+  .section:nth-of-type(6) .rail .pulse{animation-delay:-3.8s}
+  .section:nth-of-type(7) .rail .pulse{animation-delay:-4.4s}
+}
+@media (prefers-reduced-motion:reduce){
+  .rail .pulse{display:none}
+  .rail .trace{opacity:.60}
+  .section--paper .rail .trace,
+  .section--cta .rail .trace{opacity:.60}
+}
+
+/* Junction at each section top — ring + dot + vertical mono label */
+.junction{
+  position:absolute;
+  left:var(--rail-x);
+  top:0;
+  width:var(--rail-w);
+  z-index:3;
+  transform:translateY(-12px);
+  pointer-events:none;
+}
+@media (max-width:720px){ .junction{width:32px} }
+.junction svg{display:block;margin-inline:auto;overflow:visible}
+.junction .jlabel{
+  position:absolute;
+  left:calc(50% + 16px);
+  top:34px;
+  writing-mode:vertical-rl;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--voltgeel);
+  opacity:.75;
+  white-space:nowrap;
+}
+.section--paper .junction .jlabel,
+.section--cta .junction .jlabel{color:var(--diep);opacity:.6}
+@media (max-width:720px){ .junction .jlabel{display:none} }
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+
+.site-header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(21,23,27,.82);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,196,0,.16);
+}
+.nav{
+  max-width:var(--maxw);
+  margin-inline:auto;
+  padding:14px clamp(18px,4vw,40px);
+  display:flex;align-items:center;gap:24px;
+}
+.wordmark{
+  display:flex;align-items:center;gap:11px;
+  text-decoration:none;color:#fff;
+  font-family:"Anton",sans-serif;text-transform:uppercase;
+  font-size:19px;letter-spacing:.01em;line-height:1;
+  white-space:nowrap;
+}
+.wordmark .plugmark{flex:0 0 auto}
+.wordmark span{color:var(--voltgeel)}
+
+.nav-links{
+  display:flex;gap:26px;margin-left:auto;align-items:center;
+}
+.nav-links a{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--body);text-decoration:none;
+  padding:6px 2px;position:relative;
+}
+.nav-links a:not(.btn):hover{color:#fff}
+.nav-links a:not(.btn)::after{
+  content:"";position:absolute;left:0;bottom:0;height:1px;width:0;
+  background:var(--voltgeel);transition:width .22s ease;
+}
+.nav-links a:not(.btn):hover::after{width:100%}
+
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  background:var(--voltgeel);color:var(--diep);
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px;
+  letter-spacing:.01em;text-transform:none;
+  text-decoration:none;
+  padding:11px 18px;border:none;border-radius:2px;
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease;
+  cursor:pointer;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px -8px rgba(255,196,0,.6)}
+.btn:active{transform:translateY(0)}
+.btn .bolt{flex:0 0 auto}
+
+.nav-toggle{display:none}
+
+@media (max-width:760px){
+  .nav-links a.anchor{display:none}
+  .nav-links{gap:14px}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.hero{
+  position:relative;
+  min-height:92vh;
+  display:flex;align-items:center;
+  padding-block:clamp(48px,8vw,96px);
+  overflow:hidden;
+}
+.hero-grid{
+  position:relative;z-index:2;
+  max-width:var(--maxw);margin-inline:auto;width:100%;
+  padding-inline:24px;
+  padding-left:calc(var(--rail-x) + var(--rail-w) + clamp(8px,3vw,40px));
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,300px);
+  gap:clamp(20px,4vw,64px);
+  align-items:center;
+}
+@media (max-width:880px){
+  .hero-grid{padding-left:calc(var(--rail-x) + 44px)}
+}
+@media (max-width:560px){
+  .hero-grid{padding-left:calc(var(--rail-x) + 28px);padding-right:18px}
+}
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-figure{display:none}
+}
+
+.hero-kicker{margin:0 0 26px;display:flex;align-items:center;gap:12px}
+.hero-kicker .tick{width:26px;height:2px;background:var(--voltgeel);display:inline-block}
+
+.hero h1{
+  font-family:"Anton",sans-serif;text-transform:uppercase;
+  font-weight:400;line-height:0.92;letter-spacing:-0.01em;
+  color:#fff;margin:0;
+  font-size:clamp(3rem,9vw,8.5rem);
+  width:100%;
+}
+.hero h1 .l2{display:block;padding-left:0.42em} /* indented middle line for asymmetry */
+.hero h1 .l1,.hero h1 .l3{display:block}
+
+.hero-sub{
+  margin:30px 0 0;
+  max-width:46ch;
+  font-size:clamp(16px,1.7vw,19px);
+  font-weight:500;
+  color:#D7DAE0;
+  line-height:1.5;
+}
+.hero-sub strong{color:#fff;font-weight:600}
+
+.hero-cta-row{
+  margin-top:34px;display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+}
+.hero-cta-row .btn{font-size:15px;padding:14px 22px}
+.ghost-link{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--body);text-decoration:none;
+  border-bottom:1px solid rgba(255,196,0,.4);padding-bottom:3px;
+}
+.ghost-link:hover{color:#fff;border-color:var(--voltgeel)}
+
+/* Type-2 connector glyph sitting on the hero origin of the stroomlijn */
+.hero-origin{
+  position:absolute;
+  left:var(--rail-x);
+  bottom:clamp(40px,9vh,120px);
+  width:var(--rail-w);
+  z-index:4;
+  display:flex;justify-content:center;
+  pointer-events:none;
+}
+@media (max-width:720px){ .hero-origin{width:32px} }
+.hero-origin svg{overflow:visible}
+@media (prefers-reduced-motion:no-preference){
+  .hero-origin .glow{animation:plugpulse 5s ease-in-out infinite}
+  @keyframes plugpulse{0%,100%{opacity:.35}50%{opacity:.9}}
+}
+
+/* Z-kink polyline detour just under the hero */
+.zkink{
+  position:absolute;
+  left:var(--rail-x);
+  bottom:-1px;
+  width:calc(var(--rail-w) + 130px);
+  height:120px;
+  z-index:3;
+  pointer-events:none;
+}
+.zkink svg{overflow:visible;display:block}
+@media (max-width:720px){ .zkink{display:none} }
+
+/* Hero wallbox figure (right column) */
+.hero-figure{position:relative;justify-self:end}
+.hero-figure svg{display:block;width:100%;height:auto;max-width:300px;overflow:visible}
+
+/* ============================================================
+   TICKER
+   ============================================================ */
+
+.ticker{
+  position:relative;z-index:5;
+  height:56px;display:flex;align-items:center;overflow:hidden;
+  border-top:1px solid var(--voltgeel);
+  border-bottom:1px solid var(--voltgeel);
+  background:var(--ink);
+}
+.ticker-track{
+  display:flex;flex:0 0 auto;align-items:center;white-space:nowrap;
+  will-change:transform;
+}
+.ticker-track span{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.18em;
+  text-transform:uppercase;color:#E7E9ED;padding-inline:18px;
+}
+.ticker-track .sp{color:var(--voltgeel)}
+@media (prefers-reduced-motion:no-preference){
+  .ticker-track{animation:tick 30s linear infinite}
+  .ticker:hover .ticker-track{animation-play-state:paused}
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+}
+
+/* ============================================================
+   WAAROM WIJ
+   ============================================================ */
+
+.claim{
+  font-family:"Anton",sans-serif;text-transform:uppercase;
+  font-weight:400;line-height:0.94;letter-spacing:-0.01em;color:#fff;
+  font-size:clamp(2.3rem,6vw,5rem);
+  margin:0 0 8px;max-width:14ch;
+}
+.section-kicker{margin:0 0 22px}
+.section-lead{max-width:52ch;color:var(--body);margin:18px 0 0;font-size:18px;line-height:1.6}
+
+.why-cards{
+  margin-top:clamp(48px,7vw,84px);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:22px;
+  align-items:start;
+}
+@media (max-width:880px){.why-cards{grid-template-columns:1fr;gap:18px}}
+
+.card{
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:3px;
+  padding:30px 26px 32px;
+  position:relative;
+  overflow:hidden;
+}
+.card .num{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:54px;line-height:1;font-weight:500;
+  color:var(--voltgeel);opacity:.92;
+  display:block;margin-bottom:18px;letter-spacing:.02em;
+}
+.card h3{
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:20px;
+  color:#fff;margin:0 0 10px;line-height:1.2;
+}
+.card p{margin:0;font-size:15.5px;line-height:1.6;color:var(--body)}
+.card::after{
+  content:"";position:absolute;left:0;top:0;width:3px;height:0;
+  background:var(--voltgeel);transition:height .3s ease;
+}
+.card:hover::after{height:100%}
+
+/* staggered offsets */
+.why-cards .card:nth-child(2){transform:translateY(34px)}
+.why-cards .card:nth-child(3){transform:translateY(64px)}
+@media (max-width:880px){
+  .why-cards .card:nth-child(2),
+  .why-cards .card:nth-child(3){transform:none}
+}
+
+/* ============================================================
+   DIENSTEN — 60/40 poster cards
+   ============================================================ */
+
+.dienst-grid{
+  margin-top:clamp(44px,6vw,72px);
+  display:grid;
+  grid-template-columns:6fr 4fr;
+  gap:24px;
+}
+@media (max-width:880px){.dienst-grid{grid-template-columns:1fr;gap:20px}}
+
+.poster{
+  position:relative;
+  background:var(--panel);
+  padding:34px 30px 38px;
+  min-height:340px;
+  display:flex;flex-direction:column;
+  /* corner-notched yellow 1px border via clip + layered bg */
+  clip-path:polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+}
+.poster::before{
+  content:"";position:absolute;inset:0;
+  border:1px solid var(--voltgeel);
+  clip-path:polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+  pointer-events:none;
+}
+.poster .pkick{margin:0 0 18px}
+.poster h3{
+  font-family:"Anton",sans-serif;text-transform:uppercase;font-weight:400;
+  letter-spacing:-0.01em;line-height:0.94;color:#fff;
+  font-size:clamp(2.2rem,4.4vw,3.4rem);margin:0 0 14px;
+}
+.poster p{margin:0;color:var(--body);font-size:16px;line-height:1.6;max-width:42ch}
+.poster .picon{margin-top:auto;padding-top:26px}
+.poster .picon svg{display:block;overflow:visible}
+.poster ul{
+  list-style:none;margin:16px 0 0;padding:0;
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.poster ul li{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--voltgeel);
+  border:1px solid rgba(255,196,0,.4);border-radius:2px;
+  padding:5px 9px;
+}
+
+/* ============================================================
+   WERKWIJZE — paper inversion
+   ============================================================ */
+
+.section--paper{background:var(--papier);color:var(--diep)}
+.section--paper .claim,
+.section--paper .section-lead{color:var(--diep)}
+.section--paper .kicker{color:#8a6b00}
+.section--paper .section-lead{color:#3a3b3f}
+
+.steps{
+  margin-top:clamp(40px,6vw,72px);
+  display:flex;flex-direction:column;gap:0;
+  border-left:0;
+}
+.step{
+  position:relative;
+  padding:30px 0 30px 0;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:24px;
+  align-items:start;
+  border-top:1px solid rgba(16,17,20,.14);
+}
+.step:last-child{border-bottom:1px solid rgba(16,17,20,.14)}
+.step .snum{
+  font-family:"IBM Plex Mono",monospace;font-weight:500;
+  font-size:13px;letter-spacing:.12em;color:#8a6b00;
+  position:relative;padding-left:34px;min-width:64px;
+}
+/* junction dot hung on the (now black) stroomlijn */
+.step .snum::before{
+  content:"";position:absolute;left:0;top:1px;
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--diep);background:var(--papier);
+}
+.step .snum::after{
+  content:"";position:absolute;left:5px;top:6px;
+  width:4px;height:4px;border-radius:50%;background:var(--diep);
+}
+.step h3{
+  font-family:"Anton",sans-serif;text-transform:uppercase;font-weight:400;
+  letter-spacing:-0.005em;line-height:0.96;color:var(--diep);
+  font-size:clamp(1.6rem,3vw,2.3rem);margin:0 0 8px;
+}
+.step p{margin:0;color:#3a3b3f;font-size:16px;line-height:1.6;max-width:54ch}
+
+/* ============================================================
+   REGIO — circuit-diagram map
+   ============================================================ */
+
+.regio-grid{
+  margin-top:clamp(40px,6vw,68px);
+  display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,4vw,56px);
+  align-items:center;
+}
+@media (max-width:880px){.regio-grid{grid-template-columns:1fr;gap:32px}}
+
+.circuit{width:100%;height:auto;display:block;overflow:visible}
+.circuit text{font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
+
+.regio-prose p{color:var(--body);font-size:17px;line-height:1.7;margin:0 0 16px}
+.regio-prose .places{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;list-style:none;padding:0;
+}
+.regio-prose .places li{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:#D7DAE0;
+  border:1px solid rgba(255,255,255,.14);border-radius:2px;padding:6px 10px;
+  background:var(--panel);
+}
+
+/* ============================================================
+   OFFERTE CTA — full-bleed yellow
+   ============================================================ */
+
+.section--cta{background:var(--voltgeel);color:var(--diep)}
+.cta-wrap{position:relative;z-index:2}
+.section--cta .kicker{color:var(--diep);opacity:.8}
+
+.cta-h{
+  font-family:"Anton",sans-serif;text-transform:uppercase;font-weight:400;
+  letter-spacing:-0.01em;line-height:0.92;color:var(--diep);
+  font-size:clamp(2.6rem,7vw,6rem);margin:0 0 16px;max-width:12ch;
+}
+.cta-lead{max-width:48ch;color:#26282d;font-size:18px;line-height:1.6;margin:0 0 40px;font-weight:500}
+
+/* socket terminus glyph above the form */
+.cta-socket{
+  position:absolute;
+  left:var(--rail-x);top:-2px;
+  width:var(--rail-w);z-index:4;
+  display:flex;justify-content:center;pointer-events:none;
+}
+@media (max-width:720px){.cta-socket{width:32px}}
+.cta-socket svg{overflow:visible}
+
+.offer-form{
+  display:grid;grid-template-columns:1fr 1fr;gap:26px 30px;max-width:640px;
+}
+@media (max-width:620px){.offer-form{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+.field label{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:#3a3b3f;
+}
+.field input,.field textarea,.field select{
+  background:transparent;border:none;
+  border-bottom:2px solid var(--diep);
+  font-family:"Archivo",sans-serif;font-size:17px;color:var(--diep);
+  padding:8px 2px;border-radius:0;
+}
+.field textarea{resize:vertical;min-height:76px;line-height:1.5}
+.field input::placeholder,.field textarea::placeholder{color:#6a6c70}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-bottom-color:var(--diep);
+  box-shadow:0 2px 0 0 var(--diep);
+}
+.field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{
+  outline:2px solid var(--diep);outline-offset:4px;
+}
+.btn--dark{
+  background:var(--diep);color:var(--voltgeel);font-weight:600;font-size:16px;
+  padding:15px 26px;justify-self:start;
+}
+.btn--dark:hover{box-shadow:0 8px 24px -10px rgba(16,17,20,.7)}
+.form-note{
+  grid-column:1/-1;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  color:#3a3b3f;margin-top:2px;
+}
+.form-note a{color:var(--diep);font-weight:500}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.site-footer{
+  background:var(--ink);
+  border-top:1px solid rgba(255,196,0,.16);
+  padding:46px clamp(18px,4vw,40px) 40px;
+}
+.footer-in{
+  max-width:var(--maxw);margin-inline:auto;
+  display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-start;
+  justify-content:space-between;
+}
+.footer-brand{display:flex;align-items:center;gap:11px;color:#fff;
+  font-family:"Anton",sans-serif;text-transform:uppercase;font-size:18px;letter-spacing:.01em}
+.footer-brand span{color:var(--voltgeel)}
+.footer-meta{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;
+  color:var(--body);line-height:1.9;
+}
+.footer-meta a{color:var(--voltgeel);text-decoration:none}
+.footer-meta a:hover{text-decoration:underline}
+.footer-cols{display:flex;gap:48px;flex-wrap:wrap}
+.footer-col h4{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:#7c7f87;margin:0 0 10px;font-weight:500;
+}
+.footer-col a{
+  display:block;color:var(--body);text-decoration:none;font-size:14px;
+  padding:3px 0;
+}
+.footer-col a:hover{color:#fff}
+.footer-bottom{
+  max-width:var(--maxw);margin:34px auto 0;padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.07);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  color:#7c7f87;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;
+}
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">Direct naar inhoud</a>
+
+<!-- ====================== HEADER ====================== -->
+<header class="site-header">
+  <nav class="nav" aria-label="Hoofdnavigatie">
+    <a class="wordmark" href="#top" aria-label="Leuven Laadpaal, naar boven">
+      <svg class="plugmark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="13" r="9.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <line x1="6" y1="6.2" x2="18" y2="6.2" stroke="#FFC400" stroke-width="2"/>
+        <circle cx="9" cy="9.4" r="1.1" fill="#FFC400"/>
+        <circle cx="15" cy="9.4" r="1.1" fill="#FFC400"/>
+        <circle cx="8" cy="14" r="1.4" fill="#FFC400"/>
+        <circle cx="12" cy="15" r="1.4" fill="#FFC400"/>
+        <circle cx="16" cy="14" r="1.4" fill="#FFC400"/>
+      </svg>
+      Leuven <span>Laadpaal</span>
+    </a>
+    <div class="nav-links">
+      <a class="anchor" href="#waarom">Waarom wij</a>
+      <a class="anchor" href="#diensten">Diensten</a>
+      <a class="anchor" href="#werkwijze">Werkwijze</a>
+      <a class="anchor" href="#regio">Werkgebied</a>
+      <a class="btn" href="mailto:info@leuven-laadpaal.be?subject=Offerte%20laadpaal">
+        <svg class="bolt" width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" focusable="false"><path d="M7 0 0 9h4l-1 7 8-10H6.5L7 0Z" fill="#101114"/></svg>
+        Vrijblijvende offerte
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+<a id="top"></a>
+
+<!-- ====================== HERO ====================== -->
+<section class="hero section" aria-labelledby="hero-h1">
+  <div class="rail" aria-hidden="true">
+    <span class="trace"></span>
+    <span class="pulse"></span>
+  </div>
+
+  <!-- Type-2 connector origin of the stroomlijn -->
+  <div class="hero-origin" aria-hidden="true">
+    <svg width="72" height="72" viewBox="0 0 72 72" focusable="false">
+      <circle class="glow" cx="36" cy="40" r="29" fill="none" stroke="#FFC400" stroke-width="2" opacity=".5"/>
+      <line x1="14" y1="20" x2="58" y2="20" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="27" cy="29" r="2.6" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="45" cy="29" r="2.6" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="22" cy="44" r="4.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="36" cy="40" r="4.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="50" cy="44" r="4.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="29" cy="53" r="4.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="43" cy="53" r="4.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <p class="hero-kicker kicker"><span class="tick" aria-hidden="true"></span>Leuven &amp; rand — thuis &amp; KMO</p>
+      <h1 id="hero-h1" class="display">
+        <span class="l1">Je <span class="yellow">laadpaal</span></span>
+        <span class="l2">in Leuven,</span>
+        <span class="l3">strak gezet.</span>
+      </h1>
+      <p class="hero-sub">
+        Geen callcenter. <strong>Twee ingenieurs elektrotechniek</strong> meten op, leggen aan en leveren je thuislader op — AREI-conform en netjes afgewerkt.
+      </p>
+      <div class="hero-cta-row">
+        <a class="btn" href="mailto:info@leuven-laadpaal.be?subject=Offerte%20laadpaal">
+          <svg class="bolt" width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" focusable="false"><path d="M7 0 0 9h4l-1 7 8-10H6.5L7 0Z" fill="#101114"/></svg>
+          Vraag je offerte
+        </a>
+        <a class="ghost-link" href="#werkwijze">Zo werken we →</a>
+      </div>
+    </div>
+
+    <!-- Hero wallbox front-view with mono leader lines -->
+    <div class="hero-figure" aria-hidden="true">
+      <svg viewBox="0 0 300 420" role="img" aria-label="Tekening van een wallbox laadpaal">
+        <!-- body -->
+        <rect x="96" y="40" width="108" height="200" rx="14" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <!-- screen / status -->
+        <rect x="116" y="64" width="68" height="40" rx="4" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <line x1="124" y1="84" x2="160" y2="84" stroke="#FFC400" stroke-width="2"/>
+        <!-- status led -->
+        <circle cx="150" cy="128" r="6" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <circle cx="150" cy="128" r="2" fill="#FFC400"/>
+        <!-- Type 2 socket on the unit -->
+        <circle cx="150" cy="180" r="22" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <line x1="135" y1="166" x2="165" y2="166" stroke="#FFC400" stroke-width="2"/>
+        <circle cx="143" cy="187" r="3" fill="#FFC400"/>
+        <circle cx="150" cy="184" r="3" fill="#FFC400"/>
+        <circle cx="157" cy="187" r="3" fill="#FFC400"/>
+        <!-- cable hanging -->
+        <path d="M204 150 C 250 175 250 300 224 360" fill="none" stroke="#FFC400" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="224" cy="364" r="9" fill="none" stroke="#FFC400" stroke-width="2"/>
+        <!-- leader lines + mono labels -->
+        <line x1="92" y1="64" x2="40" y2="64" stroke="#FFC400" stroke-width="1" opacity=".7"/>
+        <text x="38" y="60" text-anchor="end" fill="#C3C6CD" font-size="11">230V</text>
+        <line x1="92" y1="180" x2="40" y2="180" stroke="#FFC400" stroke-width="1" opacity=".7"/>
+        <text x="38" y="176" text-anchor="end" fill="#C3C6CD" font-size="11">11kW</text>
+        <line x1="208" y1="220" x2="262" y2="220" stroke="#FFC400" stroke-width="1" opacity=".7"/>
+        <text x="264" y="216" fill="#C3C6CD" font-size="11">6mm²</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Z-kink detour between hero and ticker -->
+  <div class="zkink" aria-hidden="true">
+    <svg width="194" height="120" viewBox="0 0 194 120" focusable="false" preserveAspectRatio="none">
+      <polyline points="32,0 32,40 150,72 32,104 32,120" fill="none" stroke="#FFC400" stroke-width="2" opacity=".55"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ====================== TICKER ====================== -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker">
+    <span>Laadpaal Leuven</span><span class="sp">⚡</span><span>Thuislader</span><span class="sp">⚡</span><span>Wallbox AC 11kW</span><span class="sp">⚡</span><span>Laadpunt KMO</span><span class="sp">⚡</span><span>AREI-conform</span><span class="sp">⚡</span><span>Load balancing</span><span class="sp">⚡</span><span>Keuringsattest</span><span class="sp">⚡</span>
+  </div>
+</div>
+
+<!-- ====================== WAAROM WIJ ====================== -->
+<section id="waarom" class="section" aria-labelledby="waarom-h">
+  <div class="rail" aria-hidden="true"><span class="trace"></span><span class="pulse"></span></div>
+  <div class="junction" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 32 32" focusable="false">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="16" cy="16" r="4" fill="#FFC400"/>
+    </svg>
+    <span class="jlabel">02 — Waarom wij</span>
+  </div>
+
+  <div class="wrap">
+    <p class="section-kicker kicker">02 — De aanpak</p>
+    <h2 id="waarom-h" class="claim">Geen callcenter.<br>Twee ingenieurs.</h2>
+    <p class="section-lead">
+      Je spreekt van offerte tot keuring met dezelfde twee mensen. Wij denken in stroom en in afwerking — niet in een verkoopscript.
+    </p>
+
+    <div class="why-cards">
+      <article class="card">
+        <span class="num">01</span>
+        <h3>Eén aanspreekpunt</h3>
+        <p>Geen doorverbinden, geen onderaannemers. De ingenieur die opmeet, is de ingenieur die aanlegt.</p>
+      </article>
+      <article class="card">
+        <span class="num">02</span>
+        <h3>Conform &amp; gekeurd</h3>
+        <p>AREI-conforme installatie met eendraadschema en keuring — je laadpaal staat in orde op papier én aan de muur.</p>
+      </article>
+      <article class="card">
+        <span class="num">03</span>
+        <h3>Nette afwerking</h3>
+        <p>Strak getrokken leidingen, verzorgde kabelweg en een opgeruimde werf. Vakwerk dat je blijft zien.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== DIENSTEN ====================== -->
+<section id="diensten" class="section" aria-labelledby="diensten-h">
+  <div class="rail" aria-hidden="true"><span class="trace"></span><span class="pulse"></span></div>
+  <div class="junction" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 32 32" focusable="false">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="16" cy="16" r="4" fill="#FFC400"/>
+    </svg>
+    <span class="jlabel">03 — Diensten</span>
+  </div>
+
+  <div class="wrap">
+    <p class="section-kicker kicker">03 — Wat we zetten</p>
+    <h2 id="diensten-h" class="claim">Van oprit<br>tot parking.</h2>
+
+    <div class="dienst-grid">
+      <article class="poster">
+        <p class="pkick kicker">Voor thuis</p>
+        <h3>Thuis</h3>
+        <p>Een thuislaadpaal of wallbox aan je gevel of in de garage. We kiezen vermogen en plaats op jouw aansluiting en je wagen af.</p>
+        <ul>
+          <li>Wallbox AC 11/22 kW</li>
+          <li>Dynamisch laden</li>
+          <li>Keuring inbegrepen</li>
+        </ul>
+        <div class="picon" aria-hidden="true">
+          <svg width="120" height="80" viewBox="0 0 120 80" focusable="false">
+            <!-- house outline + wallbox -->
+            <path d="M10 70 V34 L40 12 L70 34 V70" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <rect x="30" y="48" width="18" height="22" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <rect x="78" y="30" width="20" height="32" rx="3" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <circle cx="88" cy="46" r="6" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <path d="M88 14 l-5 7 h4 l-1 6 6-8 h-4 l1-5Z" fill="#FFC400"/>
+            <line x1="70" y1="58" x2="78" y2="58" stroke="#FFC400" stroke-width="2"/>
+          </svg>
+        </div>
+      </article>
+
+      <article class="poster">
+        <p class="pkick kicker">Voor KMO</p>
+        <h3>Bedrijf</h3>
+        <p>Laadpunten voor je parking of wagenpark, met load balancing zodat je aansluiting niet overbelast raakt.</p>
+        <ul>
+          <li>Parking &amp; vloot</li>
+          <li>Load balancing</li>
+        </ul>
+        <div class="picon" aria-hidden="true">
+          <svg width="120" height="80" viewBox="0 0 120 80" focusable="false">
+            <line x1="14" y1="64" x2="106" y2="64" stroke="#FFC400" stroke-width="2"/>
+            <rect x="22" y="34" width="16" height="26" rx="2" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <rect x="52" y="34" width="16" height="26" rx="2" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <rect x="82" y="34" width="16" height="26" rx="2" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <circle cx="30" cy="46" r="3.4" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <circle cx="60" cy="46" r="3.4" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <circle cx="90" cy="46" r="3.4" fill="none" stroke="#FFC400" stroke-width="2"/>
+            <line x1="30" y1="20" x2="90" y2="20" stroke="#FFC400" stroke-width="2"/>
+            <line x1="30" y1="20" x2="30" y2="34" stroke="#FFC400" stroke-width="2"/>
+            <line x1="60" y1="20" x2="60" y2="34" stroke="#FFC400" stroke-width="2"/>
+            <line x1="90" y1="20" x2="90" y2="34" stroke="#FFC400" stroke-width="2"/>
+            <circle cx="30" cy="20" r="2.4" fill="#FFC400"/>
+          </svg>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== WERKWIJZE (paper) ====================== -->
+<section id="werkwijze" class="section section--paper" aria-labelledby="werkwijze-h">
+  <div class="rail" aria-hidden="true"><span class="trace"></span><span class="pulse"></span></div>
+  <div class="junction" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 32 32" focusable="false">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#101114" stroke-width="2"/>
+      <circle cx="16" cy="16" r="4" fill="#101114"/>
+    </svg>
+    <span class="jlabel">04 — Werkwijze</span>
+  </div>
+
+  <div class="wrap">
+    <p class="section-kicker kicker">04 — Stap voor stap</p>
+    <h2 id="werkwijze-h" class="claim">Vier stappen<br>tot laden.</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="snum">01</div>
+        <div>
+          <h3>Opmeting &amp; advies</h3>
+          <p>We bekijken je aansluiting, kabelweg en wagen — ter plaatse of op plan — en adviseren vermogen en plaats.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">02</div>
+        <div>
+          <h3>Heldere offerte</h3>
+          <p>Een duidelijke, vrijblijvende offerte zonder verrassingen achteraf. Je weet precies wat er komt.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">03</div>
+        <div>
+          <h3>Installatie</h3>
+          <p>We leggen aan met verzorgde leidingen en stellen je laadpaal in, inclusief load balancing waar nodig.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="snum">04</div>
+        <div>
+          <h3>Keuring &amp; oplevering</h3>
+          <p>Eendraadschema, keuring en attest. We tonen je hoe alles werkt en je kunt laden.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== REGIO ====================== -->
+<section id="regio" class="section" aria-labelledby="regio-h">
+  <div class="rail" aria-hidden="true"><span class="trace"></span><span class="pulse"></span></div>
+  <div class="junction" aria-hidden="true">
+    <svg width="32" height="32" viewBox="0 0 32 32" focusable="false">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#FFC400" stroke-width="2"/>
+      <circle cx="16" cy="16" r="4" fill="#FFC400"/>
+    </svg>
+    <span class="jlabel">05 — Werkgebied</span>
+  </div>
+
+  <div class="wrap">
+    <p class="section-kicker kicker">05 — Werkgebied</p>
+    <h2 id="regio-h" class="claim">Leuven<br>&amp; rand.</h2>
+
+    <div class="regio-grid">
+      <!-- circuit-diagram map -->
+      <svg class="circuit" viewBox="0 0 460 360" role="img" aria-label="Schematische kaart van Leuven en omliggende gemeenten als een schakelschema">
+        <!-- traces (45/90 degrees) -->
+        <g stroke="#FFC400" stroke-width="2" fill="none" opacity=".55">
+          <polyline points="230,180 230,70 230,52"/>
+          <polyline points="230,180 360,180 408,180"/>
+          <polyline points="230,180 230,300 230,318"/>
+          <polyline points="230,180 100,180 52,180"/>
+          <polyline points="230,180 320,90 350,60"/>
+          <polyline points="230,180 140,90 110,60"/>
+          <polyline points="230,180 320,270 350,300"/>
+          <polyline points="230,180 140,270 110,300"/>
+        </g>
+        <!-- outer nodes -->
+        <g fill="#15171B" stroke="#FFC400" stroke-width="2">
+          <circle cx="230" cy="46" r="6"/>
+          <circle cx="414" cy="180" r="6"/>
+          <circle cx="230" cy="324" r="6"/>
+          <circle cx="46" cy="180" r="6"/>
+          <circle cx="356" cy="54" r="6"/>
+          <circle cx="104" cy="54" r="6"/>
+          <circle cx="356" cy="306" r="6"/>
+          <circle cx="104" cy="306" r="6"/>
+        </g>
+        <!-- central Leuven node -->
+        <circle cx="230" cy="180" r="15" fill="#FFC400"/>
+        <circle cx="230" cy="180" r="26" fill="none" stroke="#FFC400" stroke-width="2" opacity=".4"/>
+        <text x="230" y="184" text-anchor="middle" fill="#101114" font-size="11" font-weight="500">LEUVEN</text>
+        <!-- labels -->
+        <g fill="#C3C6CD" font-size="11">
+          <text x="230" y="34" text-anchor="middle">WIJGMAAL</text>
+          <text x="426" y="184">HERENT</text>
+          <text x="230" y="346" text-anchor="middle">HEVERLEE</text>
+          <text x="34" y="184" text-anchor="end">BERTEM</text>
+          <text x="356" y="42" text-anchor="middle">KESSEL-LO</text>
+          <text x="104" y="42" text-anchor="middle">WILSELE</text>
+          <text x="356" y="326" text-anchor="middle">BIERBEEK</text>
+          <text x="104" y="326" text-anchor="middle">OUD-HEVERLEE</text>
+        </g>
+      </svg>
+
+      <div class="regio-prose">
+        <p>
+          We werken in Leuven en de directe rand. Denk aan <strong style="color:#fff;font-weight:600">Heverlee, Kessel-Lo, Wilsele en Wijgmaal</strong>, en de buurgemeenten daar rond — kort genoeg om snel langs te komen en de werf op te volgen.
+        </p>
+        <p>Twijfel je of jouw adres erbij hoort? Stuur het even door, dan laten we het je meteen weten.</p>
+        <ul class="places">
+          <li>Heverlee</li><li>Kessel-Lo</li><li>Wilsele</li><li>Wijgmaal</li>
+          <li>Herent</li><li>Bertem</li><li>Oud-Heverlee</li><li>Haasrode</li>
+          <li>Bierbeek</li><li>Lubbeek</li><li>Holsbeek</li><li>Rotselaar</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== OFFERTE CTA ====================== -->
+<section id="offerte" class="section section--cta" aria-labelledby="offerte-h">
+  <div class="rail" aria-hidden="true"><span class="trace"></span><span class="pulse"></span></div>
+
+  <!-- terminus: trace plugs into a wall-socket glyph -->
+  <div class="cta-socket" aria-hidden="true">
+    <svg width="40" height="48" viewBox="0 0 40 48" focusable="false">
+      <rect x="6" y="6" width="28" height="36" rx="6" fill="none" stroke="#101114" stroke-width="2"/>
+      <circle cx="20" cy="22" r="11" fill="none" stroke="#101114" stroke-width="2"/>
+      <circle cx="15" cy="22" r="2.4" fill="#101114"/>
+      <circle cx="25" cy="22" r="2.4" fill="#101114"/>
+    </svg>
+  </div>
+
+  <div class="wrap cta-wrap">
+    <p class="section-kicker kicker">06 — Offerte</p>
+    <h2 id="offerte-h" class="cta-h">Klaar om te laden?</h2>
+    <p class="cta-lead">
+      Vertel ons kort over je wagen en je woning of zaak. We bezorgen je een vrijblijvende offerte — recht van twee ingenieurs, geen verkoper ertussen.
+    </p>
+
+    <form class="offer-form" id="offerteForm" action="mailto:info@leuven-laadpaal.be" method="post" enctype="text/plain">
+      <div class="field">
+        <label for="f-naam">Naam</label>
+        <input id="f-naam" name="naam" type="text" autocomplete="name" placeholder="Voor- en achternaam" required />
+      </div>
+      <div class="field">
+        <label for="f-gemeente">Gemeente</label>
+        <input id="f-gemeente" name="gemeente" type="text" autocomplete="address-level2" placeholder="bv. Heverlee" required />
+      </div>
+      <div class="field full">
+        <label for="f-email">E-mail</label>
+        <input id="f-email" name="email" type="email" autocomplete="email" placeholder="jij@voorbeeld.be" required />
+      </div>
+      <div class="field full">
+        <label for="f-bericht">Bericht</label>
+        <textarea id="f-bericht" name="bericht" placeholder="Welke wagen, thuis of zaak, en waar moet de laadpaal komen?"></textarea>
+      </div>
+      <button class="btn btn--dark" type="submit">
+        <svg class="bolt" width="13" height="16" viewBox="0 0 13 16" aria-hidden="true" focusable="false"><path d="M7 0 0 9h4l-1 7 8-10H6.5L7 0Z" fill="#FFC400"/></svg>
+        Verstuur aanvraag
+      </button>
+      <p class="form-note">
+        Liever direct mailen? <a href="mailto:info@leuven-laadpaal.be?subject=Offerte%20laadpaal">info@leuven-laadpaal.be</a>
+      </p>
+    </form>
+  </div>
+</section>
+</main>
+
+<!-- ====================== FOOTER ====================== -->
+<footer class="site-footer">
+  <div class="footer-in">
+    <div>
+      <p class="footer-brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="13" r="9.2" fill="none" stroke="#FFC400" stroke-width="2"/>
+          <line x1="6" y1="6.2" x2="18" y2="6.2" stroke="#FFC400" stroke-width="2"/>
+          <circle cx="8" cy="14" r="1.4" fill="#FFC400"/>
+          <circle cx="12" cy="15" r="1.4" fill="#FFC400"/>
+          <circle cx="16" cy="14" r="1.4" fill="#FFC400"/>
+        </svg>
+        Leuven <span>Laadpaal</span>
+      </p>
+      <p class="footer-meta">
+        Thuisladers &amp; laadpalen — Leuven en rand.<br>
+        Twee ingenieurs elektrotechniek.<br>
+        <a href="mailto:info@leuven-laadpaal.be?subject=Offerte%20laadpaal">info@leuven-laadpaal.be</a>
+      </p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Diensten</h4>
+        <a href="#diensten">Thuislaadpaal</a>
+        <a href="#diensten">Wallbox 11/22 kW</a>
+        <a href="#diensten">Laadpunt KMO</a>
+        <a href="#diensten">Load balancing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <a href="#waarom">Waarom wij</a>
+        <a href="#werkwijze">Werkwijze</a>
+        <a href="#regio">Werkgebied</a>
+        <a href="mailto:info@leuven-laadpaal.be?subject=Offerte%20laadpaal">Offerte</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Leuven Laadpaal — AREI-conform · met keuring</span>
+    <span>Leuven · Heverlee · Kessel-Lo · Wilsele · Wijgmaal</span>
+  </div>
+</footer>
+
+<script>
+/* Tiny progressive enhancement only. Page is fully functional without JS. */
+(function(){
+  /* Duplicate the ticker track so the translateX(-50%) loop is seamless. */
+  var t = document.getElementById('ticker');
+  if(t){ t.innerHTML += t.innerHTML; }
+})();
+</script>
+</body>
+</html>
